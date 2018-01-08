@@ -1,3 +1,95 @@
+class: center, bottom
+
+
+# Kubernetes - the Easy way
+
+---
+
+
+# Objective
+
+Learn how Kubernetes works
+
+
+Approach:
+
+- Kubernetes Architecture
+
+--
+
+### Why?
+--
+
+1. The most used container orchestrator in the market
+--
+
+1. It rocks!
+--
+
+
+---
+
+# How
+
+Extreamly hands-on. We learn by trying
+
+Incremental
+
+???
+Not at lot of concepts in the first day. Only the necessary
+
+---
+# What is a Container Orchestrator
+
+- Manage my container, I don't care where!
+
+--
+
+- Scale if I ask you to scale
+
+--
+
+- Honor the contract (App x Orchestrator)
+
+--
+
+- Make good use of hardware resources
+
+---
+
+# What is Kubernetes
+
+Kubernetes is an open-source platform designed to automate deploying, scaling, and operating application containers.
+
+With Kubernetes, you are able to quickly and efficiently respond to customer demand:
+
+- Deploy your applications quickly and predictably.
+- Scale your applications on the fly.
+- Roll out new features seamlessly.
+- Limit hardware usage to required resources only
+
+---
+class: top, right, fit-image
+layout: false
+background-image: url(http://localhost:8000/images/kube-arch-0.jpg)
+
+---
+class: top, right, fit-image
+layout: false
+background-image: url(http://localhost:8000/images/kube-node.svg)
+
+???
+
+Kubelet = Watch APIServer && Execute workload assigned to it's node
+Docker = Container runtime solution
+
+---
+
+# Let's setup minikube
+
+Do minikube setup
+
+---
 
 # WTF is a Pod?
 
@@ -80,9 +172,9 @@ Open http://127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/kubernet
 
 # Micro services and Kubernetes
 
-Think about different micro-services. They are separate entities, therefore need to be placed into separate pods. 
+Think about different micro-services. They are separate entities, therefore need to be placed into separate pods.
 
-We don't want to setup the communication pod x pod, right? 
+We don't want to setup the communication pod x pod, right?
 
 --
 
@@ -142,9 +234,9 @@ Exposes the service on a cluster-internal IP. Choosing this value makes the serv
 
 **NodePort**
 
-Exposes the service on each Node’s IP at a static port (the NodePort). 
+Exposes the service on each Node’s IP at a static port (the NodePort).
 
-A ClusterIP service, to which the NodePort service will route, is automatically created. 
+A ClusterIP service, to which the NodePort service will route, is automatically created.
 
 --
 
@@ -268,7 +360,7 @@ That's why we need another object!
 A **Deployment**!
 
 ---
-# Deployment 
+# Deployment
 
 A Deployment controller provides declarative updates for Pods and ReplicaSets.
 
@@ -282,7 +374,7 @@ You describe a desired state in a Deployment object, and the Deployment controll
 ---
 # Shit Happens, how can we rollback?
 
-Deployment by default tracks history of all rollouts. 
+Deployment by default tracks history of all rollouts.
 
 ```
 kubectl rollout history deployment/hello-k8s-deployment
@@ -307,3 +399,5 @@ The maximum number of Pods that can be created over the desired number of Pods
 **MaxUnavailable**
 
 The maximum number of Pods that can be unavailable during the update process.
+
+
