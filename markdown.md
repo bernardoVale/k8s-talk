@@ -400,4 +400,12 @@ The maximum number of Pods that can be created over the desired number of Pods
 
 The maximum number of Pods that can be unavailable during the update process.
 
+---
 
+# Using Deployment for Canary Release strategy
+
+How we could use the deployment workload to implement a canary release process?
+
+--
+
+Simple, let's create two deployments and use different labels!
