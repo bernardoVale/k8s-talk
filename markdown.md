@@ -409,3 +409,34 @@ How we could use the deployment workload to implement a canary release process?
 --
 
 Simple, let's create two deployments and use different labels!
+
+---
+
+# Decopling Configuration from your app
+
+Twelve-factor app:
+
+III Config: Store config in the environment
+
+---
+
+# ConfigMap
+
+ConfigMaps allow you to decouple configuration artifacts from image 
+content to keep containerized applications portable.
+
+--
+
+Based on your needs a configmap can be injected in runtime as:
+
+  - Env variables
+  - Files
+
+???
+simple file: kubectl create configmap hello-k8s-prod --from-file settings-prod.cfg
+
+Show an example with a directory:
+
+create configmap hello-k8s-prod --from-file config_dir
+
+Show env_var example
