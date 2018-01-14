@@ -440,3 +440,35 @@ Show an example with a directory:
 create configmap hello-k8s-prod --from-file config_dir
 
 Show env_var example
+
+---
+
+# Don't tell me you keep your db password in scm
+
+If you have sensitive information, you shouldn't use a **configmap**
+
+--
+
+Kubernetes has a built-in solution to host sensitive information.
+
+---
+
+# Secrets
+
+A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key. 
+
+Such information might otherwise be put in a Pod specification or in an image; putting it in a Secret object allows for 
+more control over how it is used, and reduces the risk of accidental exposure.
+
+--
+
+Like Configmap's a secret can be mounted as a volume or env vars.
+
+
+???
+Create a secret via yaml. Show how to encode/decode
+
+Create a generic secret:
+
+kubectl create secret generic envs --from-env-file vars.env
+kubectl create secret generic my-dirty-little-secret --from-file some-file --from-file some-other-file
