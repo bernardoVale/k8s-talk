@@ -472,3 +472,129 @@ Create a generic secret:
 
 kubectl create secret generic envs --from-env-file vars.env
 kubectl create secret generic my-dirty-little-secret --from-file some-file --from-file some-other-file
+
+---
+class: top, middle
+layout: false
+
+# Storage
+
+---
+# Volumes
+
+Volume as a way to mount non ephemeral data into a container.
+
+At its core, a volume is just a directory, possibly with some data in it, which is accessible to the containers in a pod. How that directory comes to be, the medium that backs it, and the contents of it are determined by the particular volume type used.
+
+??? Show example
+
+---
+# Persistent Volume
+
+The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed. To do this we introduce two new API resources: PersistentVolume and PersistentVolumeClaim.
+
+--
+
+**PersistentVolume(PV)**
+
+A piece of storage in the cluster that has been provisioned by an administrator.
+
+PVs are volume plugins like Volumes, but have a lifecycle independent of any individual pod that uses the PV. 
+
+--
+
+**PersistentVolumeClaim(PVC)**
+
+A request for storage by a user.
+
+Pods consume node resources and PVCs consume PV resoures. Pods can request specific levels of resources (CPU and Memory). Claims can request specific size and access modes (e.g., can be mounted once read/write or many times read-only).
+
+---
+# Provisioning PV
+
+Two types
+
+**Static**
+
+A cluster administrator creates a number of PVs. They carry the details of the real storage which is available for use by cluster users.
+
+--
+
+**Dynamic**
+
+When none of the static PVs the administrator created matches a user’s PersistentVolumeClaim, the cluster may try to dynamically provision a volume specially for the PVC. This provisioning is based on **StorageClasses**
+
+---
+# Lifecycle
+
+
+1. A user creates a PVC, with a specific size
+--
+
+1. A control loop watches for PVC matching a PV if possible
+
+--
+
+1. Volume is mounted in a pod that requested the PVC
+
+--
+
+1. After pod deletion the PVC is deleted. Triggering the recyling policy
+
+---
+
+# Recycling
+
+Recycling policy: Retain, Recycle, Delete
+
+**Retain** 
+
+PV is not deleted the volume is considered "released". The PV can't be used again without manual intervention
+
+--
+
+**Recycle**
+
+PV is not deleted but erased (rm -rf *). The PV is marked as available to new PVC
+
+--
+
+**Delete**
+
+Removes the PV and the storage.
+
+???
+1 - Create static pv & pvc and pod
+2 - Show dynamic example / Storage class
+3 - Download storageclass and show then
+
+
+---
+
+class: top, middle
+layout: false
+
+# If everything is ephemeral, looks like there's no way to run my database in k8s, right?
+
+--
+
+# Actually, we can!
+
+---
+# StatefulSet
+
+Like a Deployment, a StatefulSet manages Pods that are based on an identical container spec. Unlike a Deployment, a StatefulSet maintains a sticky identity for each of their Pods. These pods are created from the same spec, but are not interchangeable: each has a persistent identifier that it maintains across any rescheduling.
+
+StatefulSets are valuable for applications that require one or more of the following.
+
+ - Stable, unique network identifiers.
+ - Stable, persistent storage.
+ - Ordered, graceful deployment and scaling.
+ - Ordered, graceful deletion and termination.
+ - Ordered, automated rolling updates
+
+ ???
+ 1 - Create statefulset
+ 1 - Show what happens when a statefulset is deleted
+ 1 - Create the statefulset again show that the pvc will be still marked for us
+ 1 - Add content to the volumes
