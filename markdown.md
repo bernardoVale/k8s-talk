@@ -422,7 +422,7 @@ III Config: Store config in the environment
 
 # ConfigMap
 
-ConfigMaps allow you to decouple configuration artifacts from image 
+ConfigMaps allow you to decouple configuration artifacts from image
 content to keep containerized applications portable.
 
 --
@@ -455,9 +455,9 @@ Kubernetes has a built-in solution to host sensitive information.
 
 # Secrets
 
-A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key. 
+A Secret is an object that contains a small amount of sensitive data such as a password, a token, or a key.
 
-Such information might otherwise be put in a Pod specification or in an image; putting it in a Secret object allows for 
+Such information might otherwise be put in a Pod specification or in an image; putting it in a Secret object allows for
 more control over how it is used, and reduces the risk of accidental exposure.
 
 --
@@ -499,7 +499,7 @@ The PersistentVolume subsystem provides an API for users and administrators that
 
 A piece of storage in the cluster that has been provisioned by an administrator.
 
-PVs are volume plugins like Volumes, but have a lifecycle independent of any individual pod that uses the PV. 
+PVs are volume plugins like Volumes, but have a lifecycle independent of any individual pod that uses the PV.
 
 --
 
@@ -547,7 +547,7 @@ When none of the static PVs the administrator created matches a user’s Persist
 
 Recycling policy: Retain, Recycle, Delete
 
-**Retain** 
+**Retain**
 
 PV is not deleted the volume is considered "released". The PV can't be used again without manual intervention
 
@@ -598,3 +598,34 @@ StatefulSets are valuable for applications that require one or more of the follo
  1 - Show what happens when a statefulset is deleted
  1 - Create the statefulset again show that the pvc will be still marked for us
  1 - Add content to the volumes
+
+---
+class: top, middle
+layout: false
+
+# Health Checks. You should have one!
+
+---
+
+# Probe
+
+A Probe is a diagnostic performed periodically by the kubelet on a Container. To perform a diagnostic, the kubelet calls a Handler implemented by the Container
+
+--
+
+**ExecAction**
+
+Executes a specified command inside the Container. The diagnostic is considered successful if the command exits with a status code of 0.
+
+--
+
+**TCPSocketAction**
+
+Performs a TCP check against the Container’s IP address on a specified port. The diagnostic is considered successful if the port is open.
+
+--
+
+**HTTPGetAction**
+
+Performs an HTTP Get request against the Container’s IP address on a specified port and path. The diagnostic is considered successful if the response has a status code greater than or equal to 200 and less than 400.
+
