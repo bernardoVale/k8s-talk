@@ -598,12 +598,51 @@ StatefulSets are valuable for applications that require one or more of the follo
  1 - Show what happens when a statefulset is deleted
  1 - Create the statefulset again show that the pvc will be still marked for us
  1 - Add content to the volumes
+ 1 - Create mongodb statefulset
 
 ---
 class: top, middle
 layout: false
 
 # Health Checks. You should have one!
+
+???
+Show the problem
+Deploy app that takes time to start to explain why we need probes
+Scale the app to 4 pods to show that during the deployment you might have downtime
+
+kubectl scale --replicas=4 deployment/slow-app
+kubectl get pods -l app=slow -w
+while :; do; curl http://192.168.99.100:31830/pod; echo "" ; sleep 1; done
+
+---
+# Pod Lifecycle
+
+#### Phases
+
+**Pending**
+Scheduling not done, might be still downloading images, waiting for a node to accept the workload.
+
+--
+
+**Running**
+Bound to a node, all containers created
+
+--
+
+**Succeeded**
+All containers terminated in success and will not be restarted
+
+--
+
+**Failed**
+All Containers in the Pod have terminated, and at least one Container has terminated in failure. Non zero status code
+
+--
+
+**Unknown**
+For some reason the state of the Pod could not be obtained, typically due to an error in communicating with the host of the Pod.
+
 
 ---
 
@@ -629,3 +668,147 @@ Performs a TCP check against the Container’s IP address on a specified port. T
 
 Performs an HTTP Get request against the Container’s IP address on a specified port and path. The diagnostic is considered successful if the response has a status code greater than or equal to 200 and less than 400.
 
+---
+class: top, middle
+layout: false
+
+# Implementing Readness and Liveness Probe
+
+???
+Using the good-deployment.yml define the probes, scale to 4
+read the logs of one of the apps and send a curl request meanwhile
+
+---
+class: top, middle
+layout: false
+
+# Quality of Service
+
+---
+# Requests & Limits
+
+When you specify a Pod, you can optionally specify how much CPU and memory each Container needs. 
+
+When Containers have resource requests specified, the scheduler can make better decisions about which nodes to place Pods on
+
+--
+
+**Resource Types**
+
+**CPU**
+
+Measure in cpu units where 1=1vCPU
+
+CPU is always requested as an absolute quantity, never as a relative quantity; 0.1 is the same amount of CPU on a single-core, dual-core, or 48-core machine.
+
+
+**Memory**
+
+Measured in bytes, can be expressed in different formats:
+
+```
+128974848, 129e6, 129M, 123Mi
+```
+
+---
+# Requests & Limits
+
+**Requests**
+
+A soft limit, when you define a request value you're describing that you need at least this amount to operate. The system will guarantee this amount.
+
+Scheduling decisions are based on requests!
+
+**Limits**
+
+A hard limit, when you define a limit you're defining the maximum amount that the system will allow you to use
+
+---
+
+# What happens when they exceed their limits?
+
+It depends whether the resource is compressible or incompressible
+
+--
+
+**CPU**
+
+Pods will be throttled if they exceed their limit. If limit is unspecified, then the pods can use excess CPU when available.
+
+--
+
+**Memory**
+
+ Pods will get the amount of memory they request, if they exceed their memory request, they could be killed (if some other pod needs memory).
+
+ When Pods use more memory than their limit, a process that is using the most amount of memory, inside one of the pod's containers, will be killed by the kernel.
+
+
+If k8s runs out of CPU or memory resources (where sum of limits > machine capacity). Ideally, it should kill containers **that are less important**.
+
+---
+
+# QoS Classes
+
+**Guaranteed**
+
+When you specify limits + requests and their value is equal.
+
+Pods are considered **top-priority** and are guaranteed to not be killed until they exceed their limits.
+
+**Example**
+
+**Requests**
+Memory=128Mi
+CPU=0.2
+
+**Limits**
+Memory=128Mi
+CPU=0.2
+
+---
+# QoS Classes
+
+**Burstable**
+
+When you specify requests and optionally limits for one or more resources across one or more containers, and they are not equal
+
+When limits are not specified, **they default to the node capacity**.
+
+They have a **minimal resource guarantee**, but can use more resources when available.
+
+Under system memory pressure, these containers are more likely to be killed once they exceed their requests **if there are no pods with less priority**
+
+**Example**
+
+**Requests**
+Memory=128Mi
+CPU=0.1
+
+**Limits**
+Memory=256Mi
+CPU=0.2
+
+---
+# QoS Classes
+
+**Best Effort**
+
+If requests and limits are not set for all of the resources, across all containers, then the pod is classified as Best-Effort.
+
+They have a **minimal resource guarantee**, but can use more resources when available.
+
+Pods will be treated as lowest priority. Processes in these pods are the first to get killed if the system runs out of memory.
+
+???
+Deploy an application, change the requests && limits and show it operating
+Show how slow the app can be when it's throtled
+
+---
+
+
+# Ingress
+# Auto Scaling
+# Cron Jobs
+# Deamon Set?
+# Explain about dns service
