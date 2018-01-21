@@ -1,19 +1,19 @@
 class: center, bottom
 
 
-# Kubernetes - the Easy way
+.middle[![Kubernetes](http://localhost:8000/images/kubernetes.png)]
+
+# Kubernetes for Developers
+
 
 ---
 
 
 # Objective
 
-Learn how Kubernetes works
+Learn how you can use Kubernetes to deploy, scale and maintain applications without worrying about how the cluster works
+and how all the pieces fit together.
 
-
-Approach:
-
-- Kubernetes Architecture
 
 --
 
@@ -21,19 +21,25 @@ Approach:
 --
 
 1. The most used container orchestrator in the market
+
 --
 
 1. It rocks!
+
 --
+
+1. It will make you a better developer
 
 
 ---
 
 # How
 
-Extreamly hands-on. We learn by trying
+Extreamly hands-on. We'll learn by trying
 
-Incremental
+--
+
+Incremental learning. One concept at a time
 
 ???
 Not at lot of concepts in the first day. Only the necessary
@@ -54,6 +60,7 @@ Not at lot of concepts in the first day. Only the necessary
 --
 
 - Make good use of hardware resources
+
 
 ---
 
@@ -83,11 +90,17 @@ background-image: url(http://localhost:8000/images/kube-node.svg)
 Kubelet = Watch APIServer && Execute workload assigned to it's node
 Docker = Container runtime solution
 
+WHAT IS A SCHEDULER :17:51
+https://www.youtube.com/watch?v=u_iAXzy3xBA
+
 ---
 
 # Let's setup minikube
 
-Do minikube setup
+- VirtualBox = https://www.virtualbox.org/wiki/Downloads
+- kubectl = https://kubernetes.io/docs/tasks/tools/install-kubectl/
+- minikube = https://kubernetes.io/docs/tasks/tools/install-minikube/
+
 
 ---
 
@@ -110,6 +123,12 @@ Let's run a pod :)
 ```
 kubectl run -it busybox --image=busybox -- sh
 ```
+
+???
+What's going on
+
+1 - Request sent to API
+2 - Scheduler decisions
 
 ---
 
@@ -167,6 +186,9 @@ kubectl proxy
 ```
 
 Open http://127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#!/
+
+???
+Addons are pods and services that implement cluster features
 
 ---
 
@@ -251,6 +273,26 @@ Exposes the service externally using a cloud provider’s load balancer. NodePor
 Maps the service to the contents of the externalName field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up.
 
 ---
+# Kubernetes DNS Service
+
+Kubernetes DNS schedules a DNS Pod and Service on the cluster, and configures the kubelets to tell individual containers to use the DNS Service’s IP to resolve DNS names
+
+Every Service defined in the cluster (including the DNS server itself) is assigned a DNS name.
+
+Service A record:
+
+```
+SERVICE_NAME.NAMESPACE_NAME.svc.cluster.local
+```
+
+Pod A record:
+
+```
+POD_IP.NAMESPACE_NAME.pod.cluster.local
+```
+
+---
+
 # Let's create a NodePort Service
 
 ```yml
@@ -279,6 +321,8 @@ http://127.0.0.1:8001/api/v1/proxy/namespaces/default/services/nginx-app/#!/
 
 http://192.168.99.100:30839/
 
+Explain that kube-proxy is the node component that makes it possible to reach app
+
 ---
 
 ExternalName:
@@ -294,7 +338,79 @@ spec:
 ```
 
 ---
+class: top, middle
+layout: false
+# How do I keep track of these ports? 
 
+--
+
+# Should I use one load balancer per app? 
+
+???
+Explain the idea of HAProxy outside cluster with consul tempalte
+
+dynamic HAProxy in front of k8s confd/based on etcd
+
+---
+# Ingress
+
+An Ingress is a collection of rules that allow inbound connections to reach the cluster services.
+
+--
+
+It can be configured to give services externally-reachable URLs, load balance traffic, terminate SSL, offer name based virtual hosting, and more.
+
+--
+
+An Ingress controller is responsible for fulfilling the Ingress, usually with a loadbalancer, though it may also configure your edge router or additional frontends to help handle the traffic in an HA manner.
+
+---
+# Ingress Example
+
+```yml
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: foo.bar.com
+    http:
+      paths:
+      - path: /checkout
+        backend:
+          serviceName: checkout-svc
+          servicePort: 80
+      - path: /orders
+        backend:
+          serviceName: orders-svc
+          servicePort: 80
+      - path: /products
+        backend:
+          serviceName: catalog-svc
+          servicePort: 80
+```
+---
+# Ingress Controller
+
+An app that will watch Ingress API and build the rules, serving as a sort of a fancy reverse proxy
+
+--
+
+**Common Implementations**
+
+- HAProxy
+- Google Ingress
+- Nginx Ingress
+- Traefik
+
+
+???
+minikube addons enable ingress
+
+---
 # Scaling :)
 
 So far we've been running our app in a single pod.
@@ -440,6 +556,21 @@ Show an example with a directory:
 create configmap hello-k8s-prod --from-file config_dir
 
 Show env_var example
+
+---
+# Where k8s stores my config?
+
+Inside ETCD
+
+Kubernetes components are stateless and store cluster state in etcd.
+
+--
+
+etcd is a strong, consistent, and highly-available key value store which Kubernetes uses for persistent storage of all of its API objects. 
+
+etcd usually runs as a real service inside all master hosts.
+
+So yes, your configmap will be written inside ETCD! You're safe :)
 
 ---
 
@@ -805,10 +936,25 @@ Deploy an application, change the requests && limits and show it operating
 Show how slow the app can be when it's throtled
 
 ---
+# Horizontal Pod Autoscaling
 
+Horizontal Pod Autoscaler automatically scales the number of pods in a deployment or replica set based on observed CPU utilization (or, with beta support, on some other, application-provided metrics).
 
-# Ingress
-# Auto Scaling
+???
+minikube addons enable heapster
+slow-app
+kubectl autoscale deployment slow-app --cpu-percent=40 --min=1 --max=6
+
+send traffic
+
+kubectl run -i --tty load-generator --image=busybox /bin/sh
+while true; do wget -q -O- http://slow-app.default.svc.cluster.local/pod; done
+
+brew update && brew install vegeta
+
+echo "GET  http://192.168.99.100:31830/" | vegeta attack -rate=10 -duration=120s | tee results.bin | vegeta report
+---
+
 # Cron Jobs
 # Deamon Set?
 # Explain about dns service
