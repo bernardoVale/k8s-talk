@@ -75,6 +75,16 @@ With Kubernetes, you are able to quickly and efficiently respond to customer dem
 - Roll out new features seamlessly.
 - Limit hardware usage to required resources only
 
+???
+Rancher Labs: includes a Kubernetes distribution in its Rancher container management platform.
+Pivotal: for its PKS product
+Red Hat: OpenShift product
+CoreOS: Tectonic
+IBM: IBM Cloud Container Service
+Oracle: a Kubernetes installer for Oracle Cloud Infrastructure and released Kubernetes on Oracle Linux.
+Google: Google Cloud Kubernetes Enginer
+Microsoft: Azure Kubernetes
+
 ---
 class: top, right, fit-image
 layout: false
@@ -90,7 +100,7 @@ background-image: url(http://localhost:8000/images/kube-node.svg)
 Kubelet = Watch APIServer && Execute workload assigned to it's node
 Docker = Container runtime solution
 
-WHAT IS A SCHEDULER :17:51
+WHAT IS A SCHEDULER :17:51 -  20:27
 https://www.youtube.com/watch?v=u_iAXzy3xBA
 
 ---
@@ -106,13 +116,15 @@ https://www.youtube.com/watch?v=u_iAXzy3xBA
 
 # WTF is a Pod?
 
-- A group of one or more containers with shared storage/network.
+- A group of one or more containers with shared storage/network and inter-process communication (IPC).
 
-- Smallest unit  of work of k8s.
+- Kubernetes primitive. The Smallest unit of work of k8s.
 
 ???
 
 Containers within a pod share an IP address and port space, and can find each other via localhost
+
+Containers in a Pod share the same IPC namespace, which means they can also communicate with each other using standard inter-process communications such as SystemV semaphores or POSIX shared memory.
 
 ---
 
@@ -155,7 +167,7 @@ kind: Pod
 metadata:
   name: nginx-app
   labels:
-    app: nginx
+    app: nginx-app
 spec:
   containers:
     - name: nginx
@@ -167,10 +179,22 @@ spec:
 
 ???
 kubectl get pod/nginx-app -o yaml
+
 kubectl port-forward
+
 kubectl exec -it
+
 Copy custom index.html
+
 kubectl cp nginx_index.html nginx-app-54688d7d54-l62lz:/usr/share/nginx/html/index.html
+
+---
+
+# Multi Container Pod
+
+- Shared storage
+- Inter-process communication
+- Shared network ip
 
 ---
 
@@ -185,7 +209,7 @@ Run:
 kubectl proxy
 ```
 
-Open http://127.0.0.1:8001/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#!/
+Open http://127.0.0.1:8001/ui
 
 ???
 Addons are pods and services that implement cluster features
@@ -323,8 +347,6 @@ http://192.168.99.100:30839/
 
 Explain that kube-proxy is the node component that makes it possible to reach app
 
----
-
 ExternalName:
 ```yml
 kind: Service
@@ -336,6 +358,12 @@ spec:
   type: ExternalName
   externalName: my.database.example.com
 ```
+
+for node in $(kubectl get nodes -o template --template="{{range .items}} {{range .status.addresses}} {{if or (eq .type \"ExternalIP\") }} {{.address}} {{end}} {{end}} {{end}}"); do
+  ssh -i ~/Documents/AvenueCode/ac-useast1-dev-shared.pem admin@$node nc -v localhost 31506
+done
+
+---
 
 ---
 class: top, middle
@@ -611,15 +639,20 @@ layout: false
 # Storage
 
 ---
+
 # Volumes
 
 Volume as a way to mount non ephemeral data into a container.
 
 At its core, a volume is just a directory, possibly with some data in it, which is accessible to the containers in a pod. How that directory comes to be, the medium that backs it, and the contents of it are determined by the particular volume type used.
 
-??? Show example
+
+???
+
+Show volumes example
 
 ---
+
 # Persistent Volume
 
 The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed. To do this we introduce two new API resources: PersistentVolume and PersistentVolumeClaim.
@@ -660,6 +693,7 @@ When none of the static PVs the administrator created matches a user’s Persist
 
 
 1. A user creates a PVC, with a specific size
+
 --
 
 1. A control loop watches for PVC matching a PV if possible
@@ -724,12 +758,14 @@ StatefulSets are valuable for applications that require one or more of the follo
  - Ordered, graceful deletion and termination.
  - Ordered, automated rolling updates
 
- ???
- 1 - Create statefulset
- 1 - Show what happens when a statefulset is deleted
- 1 - Create the statefulset again show that the pvc will be still marked for us
- 1 - Add content to the volumes
- 1 - Create mongodb statefulset
+
+???
+
+1 - Create statefulset
+1 - Show what happens when a statefulset is deleted
+1 - Create the statefulset again show that the pvc will be still marked for us
+1 - Add content to the volumes
+1 - Create mongodb statefulset
 
 ---
 class: top, middle
@@ -957,4 +993,3 @@ echo "GET  http://192.168.99.100:31830/" | vegeta attack -rate=10 -duration=120s
 
 # Cron Jobs
 # Deamon Set?
-# Explain about dns service
