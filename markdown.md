@@ -472,10 +472,7 @@ spec:
       containers:
       - name: hello-k8s
         image: bernardovale/hello-k8s:1.0
-        resources:
-          requests:
-            cpu: 100m
-            memory: 100Mi
+        imagePullPolicy: Always
         env:
         - name: APP_ENV
           value: Production
@@ -484,11 +481,13 @@ spec:
 ```
 
 ???
-kubectl scale --replicas=5 rc/hello-k8s
+kubectl scale --replicas=5 rs/hello-k8s
+
 kubectl get pods --watch
 
 scale up/down showing the canary
-while :; do curl http://192.168.99.100:31232/version; sleep 1; done
+
+while true; do curl http://192.168.99.100:31232/version; sleep 1; done
 
 ---
 # There must be a better way
