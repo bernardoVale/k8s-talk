@@ -196,6 +196,12 @@ kubectl cp nginx_index.html nginx-app-54688d7d54-l62lz:/usr/share/nginx/html/ind
 - Inter-process communication
 - Shared network ip
 
+???
+https://medium.com/google-cloud/understanding-kubernetes-networking-pods-7117dd28727
+https://www.ianlewis.org/en/almighty-pause-container
+
+docker inspect --format '{{.HostConfig.NetworkMode}}' k8s_POD_writer_default_db11115b-14e2-11e8-8873-080027f2ca33_0
+
 ---
 
 # Kubernetes Dashboard
@@ -487,7 +493,7 @@ kubectl get pods --watch
 
 scale up/down showing the canary
 
-while true; do curl http://192.168.99.100:31232/version; sleep 1; done
+while true; do curl http://192.168.99.100:31721/version; sleep 1; done
 
 ---
 # There must be a better way
@@ -509,12 +515,16 @@ A Deployment controller provides declarative updates for Pods and ReplicaSets.
 
 You describe a desired state in a Deployment object, and the Deployment controller changes the actual state to the desired state at a controlled rate.
 
----
+???
+kubectl delete -f replicaset/
+
 1. kubectl get rs -w
 2. while :; do; kubectl rollout status deployment/hello-k8s-deployment; sleep 1; done
-3. kubectl apply -f specs/deployment/deployment-hello-k8s.yml
+3. kubectl apply -f deployment/deployment-hello-k8s.yml
+4. kubectl apply -f deployment/canary/
 
 ---
+
 # Shit Happens, how can we rollback?
 
 Deployment by default tracks history of all rollouts.
@@ -527,8 +537,11 @@ Let's rollback our deployment!
 
 ???
 kubectl rollout history deployment/hello-k8s-deployment
+
 kubectl rollout history deployment/hello-k8s-deployment --revision 2
+
 kubectl rollout undo deployment/hello-k8s-deployment
+
 or
 kubectl rollout undo deployment/hello-k8s-deployment  --to-revision=2
 
@@ -543,6 +556,10 @@ The maximum number of Pods that can be created over the desired number of Pods
 
 The maximum number of Pods that can be unavailable during the update process.
 
+???
+kubectl rollout pause deployment hello-k8s-deployment
+kubectl rollout resume deployment hello-k8s-deployment
+
 ---
 
 # Using Deployment for Canary Release strategy
@@ -552,6 +569,15 @@ How we could use the deployment workload to implement a canary release process?
 --
 
 Simple, let's create two deployments and use different labels!
+
+???
+
+1. kubectl apply -f deployment/canary/service.yml
+1. kubectl apply -f deployment/canary/deployment.yml
+1. kubectl apply -f deployment/canary/deployment-canary.yml
+1. scale canary
+1. rollout stable version to the new version
+1. delete the canary deploymen
 
 ---
 

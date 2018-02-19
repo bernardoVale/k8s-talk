@@ -5,7 +5,7 @@ metadata:
   labels:
     app: hello-k8s
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
       app: hello-k8s
@@ -16,7 +16,8 @@ spec:
     spec:
       containers:
       - name: hello-k8s
-        image: bernardovale/hello-k8s:1.0
+        image: bernardovale/hello-k8s:2.0
+        terminationGracePeriodSeconds: 0
         imagePullPolicy: Always
         env:
         - name: APP_ENV
